@@ -1,148 +1,37 @@
+# SlotSec Lab V3 — Wi‑Fi Auto Audit
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ÉLUGAR - Comunidad Wellness</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&family=Inter:wght@300;400&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --main-color: #7BAE7F;
-      --bg-color: #fdfdfb;
-      --text-color: #333;
-      --accent-color: #c5d8c8;
-      --font-header: 'Playfair Display', serif;
-      --font-body: 'Inter', sans-serif;
-    }
+Aplicación móvil defensiva para identificar y evaluar automáticamente **máquinas propias, simuladores y equipos expresamente autorizados** mediante Wi‑Fi.
 
-    body {
-      margin: 0;
-      background: var(--bg-color);
-      color: var(--text-color);
-      font-family: var(--font-body);
-    }
+## Qué hace automáticamente
 
-    header {
-      background: var(--accent-color);
-      padding: 2rem;
-      text-align: center;
-    }
+1. Detecta la IPv4 privada del teléfono.
+2. Recorre solo la subred `/24` local y consulta únicamente `TCP/8765`.
+3. Acepta únicamente respuestas con firma `SLOTSEC-WIFI-V1`.
+4. Carga fabricante, modelo, revisión, firmware, controles y servicios reportados por el agente de solo lectura.
+5. Busca un CPE en NVD y solo atribuye CVE si obtiene una coincidencia suficientemente fiable o si el agente ya proporciona el CPE exacto.
+6. Evalúa cifrado, autenticación, debug, credenciales predeterminadas, Secure Boot, firma de firmware, versión mínima y servicios inseguros.
+7. Genera score 0–100, riesgo, remediaciones, historial SQLite y PDF.
 
-    header h1 {
-      font-family: var(--font-header);
-      font-size: 2.5rem;
-      margin: 0;
-    }
+## Aladdin Lamp / HET-VER3.1
 
-    section {
-      max-width: 900px;
-      margin: 2rem auto;
-      padding: 1rem;
-    }
+Incluye un perfil para `HET-VER3.1`. La foto permite reconocer la familia/revisión, pero la app **no puede inventar** firmware ni estados internos que la placa no exponga. Por eso los campos no verificables quedan como `null / No confirmado` hasta conectar una interfaz documentada de solo lectura.
 
-    .section-title {
-      font-family: var(--font-header);
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      text-align: center;
-      color: var(--main-color);
-    }
+Hay dos puentes incluidos:
 
-    .services {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1.5rem;
-      text-align: center;
-    }
+- `firmware/esp32-slotsec-wifi-bridge/`: crea el AP `SLOTSEC-ALADDIN-01` y permite probar la app en `192.168.4.1`.
+- `agent/`: agente para Raspberry Pi/Linux, recomendado cuando haga falta inventario USB/serial o comprobaciones de servicios autorizadas.
 
-    .service-card {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
+## Seguridad del diseño
 
-    .service-card h3 {
-      margin-top: 0.5rem;
-    }
+No contiene fuerza bruta, exploits, escritura de firmware ni funciones para modificar créditos, pagos, jackpots o RNG. El escaneo automático no es un port scanner general: solo busca el agente SlotSec en `TCP/8765` dentro de IPv4 privada.
 
-    .cta {
-      text-align: center;
-      margin: 3rem 0;
-    }
+## Ejecutar
 
-    .cta a {
-      display: inline-block;
-      background: var(--main-color);
-      color: white;
-      text-decoration: none;
-      padding: 1rem 2rem;
-      border-radius: 30px;
-      font-size: 1rem;
-      transition: background 0.3s;
-    }
+```bash
+npm install
+npm run validate
+npx expo prebuild --platform android
+npx expo run:android
+```
 
-    .cta a:hover {
-      background: #679b6e;
-    }
-
-    footer {
-      text-align: center;
-      padding: 2rem 1rem;
-      font-size: 0.9rem;
-      background: var(--accent-color);
-    }
-
-    footer a {
-      color: var(--text-color);
-      text-decoration: none;
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-
-  <header>
-    <h1>ÉLUGAR</h1>
-    <p>Bienvenido a tu espacio de bienestar natural</p>
-  </header>
-
-  <section>
-    <h2 class="section-title">Nuestros Servicios</h2>
-    <div class="services">
-      <div class="service-card">
-        <h3>Barra Saludable</h3>
-        <p>Bebidas nutritivas, batidos y meriendas balanceadas.</p>
-      </div>
-      <div class="service-card">
-        <h3>Ejercicio</h3>
-        <p>Clases grupales, pilates y movimiento consciente.</p>
-      </div>
-      <div class="service-card">
-        <h3>Eventos</h3>
-        <p>Encuentros, talleres y experiencias de bienestar.</p>
-      </div>
-      <div class="service-card">
-        <h3>Bebidas Saludables</h3>
-        <p>Tés energizantes, detox y elixir naturales.</p>
-      </div>
-      <div class="service-card">
-        <h3>Motivación</h3>
-        <p>Acompañamiento emocional y coaching inspirador.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="cta">
-    <h2 class="section-title">Únete a nuestra comunidad</h2>
-    <p>Conecta con el bienestar y una comunidad que vibra como tú</p>
-    <a href="https://www.instagram.com/ehlugar.natural" target="_blank">@ehlugar.natural</a>
-  </section>
-
-  <footer>
-    <p>© 2025 ÉLUGAR - Comunidad Wellness | Síguenos en <a href="https://www.instagram.com/ehlugar.natural" target="_blank">Instagram</a></p>
-  </footer>
-
-</body>
-</html>
+Para generar APK con GitHub Actions, usa `.github/workflows/android-apk.yml`.
