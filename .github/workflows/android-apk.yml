@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: "1"
+      NODE_ENV: "production"
 
     steps:
       - name: Checkout
@@ -32,17 +33,20 @@ jobs:
       - name: Generate native Android project
         run: npx expo prebuild --platform android --clean
 
-      - name: Build installable debug APK
+      - name: Build standalone release APK
         working-directory: android
-        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+        run: chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+
+      - name: Verify release APK exists
+        run: test -f android/app/build/outputs/apk/release/app-release.apk
 
       - name: Rename APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk SlotSec-Lab.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk SlotSec-Lab-Standalone.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SlotSec-Lab-APK
-          path: SlotSec-Lab.apk
+          name: SlotSec-Lab-Standalone-APK
+          path: SlotSec-Lab-Standalone.apk
           if-no-files-found: error
           retention-days: 30
